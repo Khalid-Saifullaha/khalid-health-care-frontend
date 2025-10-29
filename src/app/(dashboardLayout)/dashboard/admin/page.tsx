@@ -1,7 +1,6 @@
 import DashboardComponent from "@/components/modules/Dashboard/Dashboard";
-import React from "react";
 
-const DashboardPage = () => {
+const Dashboard = () => {
   return (
     <>
       <DashboardComponent />
@@ -9,4 +8,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default Dashboard;
