@@ -1,39 +1,43 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtDecode } from "jwt-decode";
+import { userInterface } from "./types/userTypes";
 
-// This function can be marked `async` if using `await` inside
-export function proxy(request: NextRequest) {
-  const token = request.cookies.get("accessToken")?.value;
+const roleBasedRoutes = {
+  ADMIN: ["/admin/dashboard"],
+  DOCTOR: ["/doctor/dashboard"],
+  PATIENT: [
+    "/patient/dashboard",
+    "/patient/appointments",
+    "/patient/medical-records",
+  ],
+};
 
-  console.log(token);
+const authRoutes = ["/login", "/register", "/forgot-password"];
+export async function proxy(request: NextRequest) {
+  const accessToken = request.cookies.get("accessToken")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
 
   const { pathname } = request.nextUrl;
 
-  const protectedPaths = [
-    "/dashboard/*",
-    "/profile",
-    "/settings",
-    "/appointments",
-  ];
-
-  const authRoutes = ["/login", "/register", "/forgot-password"];
-
-  const isProtectedPath = protectedPaths.some((path) => {
-    pathname.startsWith(path);
-  });
-
-  // current path auth route or not
-  const isAuthRoute = authRoutes.some((route) => pathname === route);
-
-  console.log(isAuthRoute);
-
-  if (isProtectedPath && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!accessToken && !refreshToken && !authRoutes.includes(pathname)) {
+    return NextResponse.redirect(
+      new URL(`/login?redirect=${pathname}`, request.url)
+    );
   }
 
-  if (isAuthRoute && token) {
-    console.log("hitting the correct block");
-    return NextResponse.redirect(new URL("/", request.url));
+  let user: userInterface | null = null;
+
+  if (accessToken) {
+    try {
+      user = jwtDecode(accessToken); // {id: string, email: string, role: "ADMIN"| "DOCTOR" | "PATIENT", exp: number, iat: number}
+      console.log({ proxyts: user });
+    } catch (err) {
+      console.log("Error decoding access token:", err);
+      return NextResponse.redirect(
+        new URL(`/login?redirect=${pathname}`, request.url)
+      );
+    }
   }
 
   return NextResponse.next();
