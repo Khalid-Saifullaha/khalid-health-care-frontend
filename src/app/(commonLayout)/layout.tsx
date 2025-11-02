@@ -1,11 +1,13 @@
+import PublicFooter from "@/components/shared/PublicFooter";
 import PublicNavbar from "@/components/shared/PublicNavbar";
-import React, { ReactNode } from "react";
+// import { UserProvider } from "@/Providers/UserProvider";
 
-const CommonLayout = ({ children }: { children: ReactNode }) => {
+const CommonLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <PublicNavbar />
       {children}
+      <PublicFooter />
     </>
   );
 };
